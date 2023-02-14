@@ -20,7 +20,12 @@ func main() {
 
 
 func serveFile(w http.ResponseWriter, r *http.Request) {
-	file, err := os.Open("../facturas/FACT_002D81A0_2635155854.pdf")
+	prefix := "FACT"
+
+	fileComplete := prefix + "_" + r.URL.Query().Get("fel") + ".pdf"
+
+	//file, err := os.Open("../facturas/FACT_002D81A0_2635155854.pdf")
+	file, err := os.Open("../facturas/" + fileComplete)
 
 	if err != nil {
 		log.Printf("%s: ", err)
