@@ -1,12 +1,14 @@
 package main
 
 import (
-	"io/ioutil"
-	"net/http"
 	"encoding/base64"
 	"encoding/json"
-	"os"
+	"io/ioutil"
 	"log"
+	"net/http"
+	"os"
+
+	"github.com/rs/cors"
 )
 
 type ResponseData struct {
@@ -14,24 +16,25 @@ type ResponseData struct {
 }
 
 func main() {
-	http.HandleFunc("/", serveFile)
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", serveFile)
+	handler := cors.Default().Handler(mux)
+	log.Fatal(http.ListenAndServe(":8080", handler))
 }
-
 
 func serveFile(w http.ResponseWriter, r *http.Request) {
 	prefix := "FACT"
 
 	fileComplete := prefix + "_" + r.URL.Query().Get("fel") + ".pdf"
 
-	//file, err := os.Open("../facturas/FACT_002D81A0_2635155854.pdf")
-	file, err := os.Open("../facturas/" + fileComplete)
+	file, err := os.Open("../assets-generics/" + fileComplete)
 
 	if err != nil {
 		log.Printf("%s: ", err)
 		http.Error(w, "Can't open file", http.StatusInternalServerError)
 		return
 	}
+
 	defer file.Close()
 
 	data, err := ioutil.ReadAll(file)
@@ -42,7 +45,7 @@ func serveFile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fileResponse := ResponseData{
-		Data:  base64.StdEncoding.EncodeToString(data),
+		Data: base64.StdEncoding.EncodeToString(data),
 	}
 
 	w.Header().Set("Content-Type", "application/json")
