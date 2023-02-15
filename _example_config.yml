@@ -1,0 +1,10 @@
+services: 
+  facturas:
+    prefix: FACT
+    querys: fel
+    path: ../test
+
+  endosos:
+    prefix: END
+    querys: fel2
+    path: ../test
