@@ -8,11 +8,18 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/karchx/b64-service/config"
 	"github.com/rs/cors"
 )
 
 type ResponseData struct {
 	Data string `bson:"data" json:"data"`
+}
+
+type Config struct {
+  QueryKey string
+  Prefix string
+  Path string
 }
 
 func main() {
@@ -44,6 +51,9 @@ func serveFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+  c := Config{}
+  log.Printf("%s", c.filterFile(r))
+
 	fileResponse := ResponseData{
 		Data: base64.StdEncoding.EncodeToString(data),
 	}
@@ -53,4 +63,17 @@ func serveFile(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(fileResponse)
 }
 
-func filterFile() {}
+func (c *Config) filterFile(r *http.Request) string {
+  c.loadConfig()
+	return c.Prefix + "_" + r.URL.Query().Get(c.QueryKey) + ".pdf"
+}
+
+func (c *Config) loadConfig() {
+	cfg, err := config.ParserConfig()
+	if err != nil {
+		log.Fatal(err)
+	}
+  c.QueryKey = cfg.Settings.Querys
+  c.Prefix = cfg.Settings.Prefix
+  c.Path = cfg.Settings.Path
+}
