@@ -20,7 +20,7 @@ const ConfigFileName = "config.yml"
 type SettingsConfig struct {
 	Prefix string `yaml:"prefix"`
 	Querys string `yaml:"querys"`
-	Path string `yaml:"path"`
+	Path   string `yaml:"path"`
 }
 
 type configError struct {
@@ -33,18 +33,14 @@ type configError struct {
 type ConfigParser struct{}
 
 type Config struct {
-	Settings SettingsConfig `yaml:"settings"`
+	Services map[string]SettingsConfig `yaml:"services"`
+	//Services []SettingsConfig `yaml:"services"`
+	// Settings SettingsConfig `yaml:"settings"`
 }
 
 // getDefaultConfig returns the default credentials for the application.
 func (parser ConfigParser) getDefaultConfig() Config {
-	return Config{
-		SettingsConfig{
-			Prefix: "<prefix>",
-			Querys: "<query-param-key>",
-			Path: "<path>",
-		},
-	}
+	return Config{}
 }
 
 // getDefaultConfigYamlContents returns the default config credentials.

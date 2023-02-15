@@ -17,9 +17,10 @@ type ResponseData struct {
 }
 
 type Config struct {
-  QueryKey string
-  Prefix string
-  Path string
+	Name     string
+	QueryKey string
+	Prefix   string
+	Path     string
 }
 
 func main() {
@@ -51,8 +52,9 @@ func serveFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-  c := Config{}
-  log.Printf("%s", c.filterFile(r))
+	c := Config{}
+	pathF := c.filterFile(r)
+	log.Fatalf("%s", pathF)
 
 	fileResponse := ResponseData{
 		Data: base64.StdEncoding.EncodeToString(data),
@@ -64,16 +66,24 @@ func serveFile(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *Config) filterFile(r *http.Request) string {
-  c.loadConfig()
+	c.loadConfig()
 	return c.Prefix + "_" + r.URL.Query().Get(c.QueryKey) + ".pdf"
 }
 
 func (c *Config) loadConfig() {
-	cfg, err := config.ParserConfig()
+	_, err := config.ParserConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
-  c.QueryKey = cfg.Settings.Querys
-  c.Prefix = cfg.Settings.Prefix
-  c.Path = cfg.Settings.Path
+
+	/*for nombre, servicio := range cfg.Services {
+		fmt.Println(nombre, "Prefix:", servicio.Prefix)
+		fmt.Println(nombre, "Querys:", servicio.Querys)
+		fmt.Println(nombre, "Path:", servicio.Path)
+	}*/
+
+	/*c.Name = cfg.Services[0].Name
+	c.QueryKey = cfg.Services[0].Querys
+	c.Prefix = cfg.Services[0].Prefix
+	c.Path = cfg.Services[0].Path*/
 }
