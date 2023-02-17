@@ -1,12 +1,10 @@
 package main
 
 import (
-	"encoding/base64"
 	"encoding/json"
-	"io/ioutil"
+	"fmt"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/karchx/b64-service/config"
 	"github.com/rs/cors"
@@ -23,6 +21,10 @@ type Config struct {
 	Path     string
 }
 
+type Services struct {
+  config []Config
+}
+
 func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", serveFile)
@@ -31,7 +33,7 @@ func main() {
 }
 
 func serveFile(w http.ResponseWriter, r *http.Request) {
-	prefix := "FACT"
+	/*prefix := "FACT"
 
 	fileComplete := prefix + "_" + r.URL.Query().Get("fel") + ".pdf"
 
@@ -50,14 +52,25 @@ func serveFile(w http.ResponseWriter, r *http.Request) {
 		log.Printf("%s: ", err)
 		http.Error(w, "Can't open file", http.StatusInternalServerError)
 		return
-	}
+	}*/
 
-	c := Config{}
-	pathF := c.filterFile(r)
-	log.Fatalf("%s", pathF)
+  service := Services{}
+  service.loadConfig()
+  var pathF string
+
+  for _, service := range service.config {
+    fmt.Println(service.Name)
+    if service.Name == r.URL.String() {
+	    pathF = filterFile(r, service)
+    }
+
+	  fmt.Printf("%s", pathF)
+  }
+ 
 
 	fileResponse := ResponseData{
-		Data: base64.StdEncoding.EncodeToString(data),
+    Data: "working...",
+		//Data: base64.StdEncoding.EncodeToString(data),
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -65,25 +78,26 @@ func serveFile(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(fileResponse)
 }
 
-func (c *Config) filterFile(r *http.Request) string {
-	c.loadConfig()
-	return c.Prefix + "_" + r.URL.Query().Get(c.QueryKey) + ".pdf"
+func filterFile(r *http.Request, config Config) string {
+  return config.Prefix + "_" + r.URL.Query().Get(config.QueryKey) + ".pdf"
 }
 
-func (c *Config) loadConfig() {
-	_, err := config.ParserConfig()
+func (s *Services) loadConfig() {
+	cfg, err := config.ParserConfig()
+  var configServices []Config
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	/*for nombre, servicio := range cfg.Services {
-		fmt.Println(nombre, "Prefix:", servicio.Prefix)
-		fmt.Println(nombre, "Querys:", servicio.Querys)
-		fmt.Println(nombre, "Path:", servicio.Path)
-	}*/
+  for key, service := range cfg.Services {
+    config := Config {
+      Name: key,
+      Prefix: service.Prefix,
+      Path: service.Path,
+      QueryKey: service.Querys,
+    }
+    configServices = append(configServices, config)
+  }
 
-	/*c.Name = cfg.Services[0].Name
-	c.QueryKey = cfg.Services[0].Querys
-	c.Prefix = cfg.Services[0].Prefix
-	c.Path = cfg.Services[0].Path*/
+  s.config = configServices
 }
