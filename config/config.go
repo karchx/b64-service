@@ -34,8 +34,6 @@ type ConfigParser struct{}
 
 type Config struct {
 	Services map[string]SettingsConfig `yaml:"services"`
-	//Services []SettingsConfig `yaml:"services"`
-	// Settings SettingsConfig `yaml:"settings"`
 }
 
 // getDefaultConfig returns the default credentials for the application.
