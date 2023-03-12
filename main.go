@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/karchx/b64-service/config"
 	"github.com/rs/cors"
@@ -18,7 +19,7 @@ type ResponseData struct {
 }
 
 type Services struct {
-	service map[string]config.SettingsConfig 
+	service map[string]config.SettingsConfig
 }
 
 func main() {
@@ -30,14 +31,14 @@ func main() {
 
 func serveFile(w http.ResponseWriter, r *http.Request) {
 
-  service := Services{}
-  service.loadConfig()
+	service := Services{}
+	service.loadConfig()
 
-  pathFile, err := service.filterFile(r)
-  if err != nil {
+	pathFile, err := service.filterFile(r)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
-    return
-  }
+		return
+	}
 
 	file, err := os.Open(pathFile)
 	if err != nil {
@@ -65,12 +66,20 @@ func serveFile(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Services) filterFile(r *http.Request) (string, error) {
-  service, ok := s.service["facturas"]
+	if r.URL.Path != "/favicon.ico" {
 
-  if ok {
-    return service.Path + "/" + service.Prefix + "_" + r.URL.Query().Get(service.Querys) + ".pdf", nil
-  }
-  return "", errors.New("Service not config")
+		filterService := strings.Replace(r.URL.Path, "/", "", -1)
+
+		service, ok := s.service[filterService]
+
+		if ok {
+			return service.Path + "/" + service.Prefix + "_" + r.URL.Query().Get(service.Querys) + ".pdf", nil
+		} else {
+	    return "", errors.New("Service not config")
+    }
+	}
+
+	return "", errors.New("Service not config")
 }
 
 func (s *Services) loadConfig() {
@@ -79,5 +88,5 @@ func (s *Services) loadConfig() {
 		log.Fatal(err)
 	}
 
-  s.service = cfg.Services
+	s.service = cfg.Services
 }
