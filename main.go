@@ -10,6 +10,7 @@ import (
 	"os"
 	"strings"
 
+	logger "github.com/gothew/l-og"
 	"github.com/karchx/b64-service/config"
 	"github.com/rs/cors"
 )
@@ -26,6 +27,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", serveFile)
 	handler := cors.Default().Handler(mux)
+	logger.Info("Server run")
 	log.Fatal(http.ListenAndServe(":8080", handler))
 }
 
@@ -75,8 +77,8 @@ func (s *Services) filterFile(r *http.Request) (string, error) {
 		if ok {
 			return service.Path + "/" + service.Prefix + "_" + r.URL.Query().Get(service.Querys) + ".pdf", nil
 		} else {
-	    return "", errors.New("Service not config")
-    }
+			return "", errors.New("Service not config")
+		}
 	}
 
 	return "", errors.New("Service not config")
