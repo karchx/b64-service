@@ -44,7 +44,8 @@ func serveFile(w http.ResponseWriter, r *http.Request) {
 
 	file, err := os.Open(pathFile)
 	if err != nil {
-		log.Printf("%s: ", err)
+		//log.Printf("%s: ", err)
+		logger.Warn(err)
 		http.Error(w, "Can't open file", http.StatusInternalServerError)
 		return
 	}
